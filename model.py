@@ -37,7 +37,8 @@ def generator(samples, batch_size=8):
                         add_flag = True
                 if add_flag is True:
                     img = cv2.imread(current_path + filename)
-                    img = cv2.cvtColor(img,cv2.COLOR_BGR2YUV)
+                    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+#                    img = cv2.cvtColor(img,cv2.COLOR_BGR2YUV)
                     height = int(img.shape[0]/2)
                     width = int(img.shape[1]/2)
                     img = cv2.resize(img,(width, height))
