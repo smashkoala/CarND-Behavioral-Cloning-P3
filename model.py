@@ -4,24 +4,35 @@ import numpy as np
 import sklearn
 
 def generator(samples, batch_size=8):
-    correction = 0.2 # this is a parameter to tune
     current_path = '../data/IMG/'
     num_samples = len(samples)
-    while 1:
+    while 1:#AP: Not add flipped images to validation samples
         sklearn.utils.shuffle(samples)
         for offset in range(0, num_samples, batch_size):
             batch_samples = samples[offset:offset+batch_size]
             images = []
             measurements = []
             for batch_sample in batch_samples:
-                filename = batch_sample[0].split('/')[-1]
-                img = cv2.imread(current_path + filename)
-                height = int(img.shape[0]/2)
-                width = int(img.shape[1]/2)
-                img = cv2.resize(img,(width, height))
-                images.append(img)
-                measurement = float(batch_sample[3])
-                measurements.append(measurement)
+                for i in range(2):
+                    filename = batch_sample[i].split('/')[-1]
+                    img = cv2.imread(current_path + filename, )
+                    height = int(img.shape[0]/2)
+                    width = int(img.shape[1]/2)
+                    img = cv2.resize(img,(width, height))
+                    images.append(img)
+                    if i == 0:
+                        correction = 0
+                    elif i == 1:
+                        correction = 0.2
+                    else:
+                        correction = -0.2
+                    measurement = float(batch_sample[3]) + correction
+                    measurements.append(measurement)
+
+                    img_flipped = np.fliplr(img)
+                    measurement_flipped = -measurement
+                    images.append(img_flipped)
+                    measurements.append(measurement_flipped)
             X_train = np.array(images)
             y_train = np.array(measurements)
             yield sklearn.utils.shuffle(X_train, y_train)
@@ -50,10 +61,11 @@ del(lines[0])
 import random
 #lines = random.shuffle(lines)
 
-split_number = int(len(lines)*8/10)
-train_samples = lines[:split_number]
+train_samples, validation_samples = train_test_split(lines, test_size=0.2)
+# split_number = int(len(lines)*8/10)
+# train_samples = lines[:split_number]
 train_generator = generator(train_samples, batch_size=32)
-validation_samples = lines[split_number:]
+# validation_samples = lines[split_number:]
 validation_generator = generator(validation_samples, batch_size=32)
 
 from keras.models import Sequential
@@ -90,8 +102,8 @@ model.summary()
 
 model.compile(loss='mse', optimizer='adam')
 #model.fit(X_train, y_train, validation_split=0.2, shuffle=True)
-model.fit_generator(train_generator, samples_per_epoch= len(train_samples), validation_data=validation_generator,
-            nb_val_samples=len(validation_samples), verbose=1, nb_epoch=5)
+model.fit_generator(train_generator, samples_per_epoch= len(train_samples)*6, validation_data=validation_generator,
+            nb_val_samples=len(validation_samples)*6, verbose=1, nb_epoch=3)
 model.save('./model.h5')
 
 import gc; gc.collect()
