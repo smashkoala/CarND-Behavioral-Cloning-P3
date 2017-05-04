@@ -127,7 +127,7 @@ from keras.layers import Convolution2D, Cropping2D, Lambda, Activation
 model = Sequential()
 
 model.add(Lambda(lambda x: x / 255.0 - 0.5, input_shape=(80,160,3),output_shape=(80,160,3)))
-model.add(Cropping2D(cropping=((25, 10), (0, 0)), input_shape=(80,160,3)))
+model.add(Cropping2D(cropping=((35, 12), (0, 0)), input_shape=(80,160,3)))
 
 model.add(Convolution2D(24, 5, 5,subsample=(1,1),activation="elu"))
 #model.add(Activation('elu'))
