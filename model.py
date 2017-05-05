@@ -4,11 +4,13 @@ import numpy as np
 import sklearn
 from sklearn.cross_validation import train_test_split
 from sklearn.utils import shuffle
-
+import matplotlib.pyplot as plt
 
 def load_data():
-    AWS = True
+    AWS = False
     del_rate = 0.87
+    del_angle = 0.03
+    share_rate = 0.5
     samples = []
     with open('../data/driving_log.csv') as csvfile:
       reader = csv.reader(csvfile)
@@ -20,10 +22,11 @@ def load_data():
 
     image_paths = []
     measurements = []
+    share_flags = []
 
     for sample in samples:
         angle = abs(float(sample[3]))
-        if angle < 0.03:
+        if angle < del_angle:
             if np.random.random() < del_rate:
                 continue
         camera = np.random.choice(['center', 'left', 'right'])
@@ -42,7 +45,14 @@ def load_data():
         image_paths.append(current_path)
         measurement = float(sample[3]) + correction
         measurements.append(measurement)
-    data = np.column_stack((image_paths, measurements))
+        share_flags.append(False)
+
+        if np.random.random() < share_rate:
+            image_paths.append(current_path)
+            measurements.append(measurement)
+            share_flags.append(True)
+
+    data = np.column_stack((image_paths, measurements, share_flags))
     data = shuffle(data)
 
     if AWS is False:
@@ -50,7 +60,6 @@ def load_data():
     return data
 
 def plot_data(data):
-    import matplotlib.pyplot as plt
     plt.hist(data, bins = 40, rwidth=0.8)
     fig = plt.gcf()
     plt.show()
@@ -58,6 +67,7 @@ def plot_data(data):
 
 def generator(samples, batch_size=8):
     num_samples = len(samples)
+    shift = 40
     while True:
         shuffle(samples)
         for offset in range(0, num_samples, batch_size):
@@ -71,6 +81,16 @@ def generator(samples, batch_size=8):
                 width = int(img.shape[1]/2)
                 img = cv2.resize(img,(width, height))
                 measurement = float(batch_sample[1])
+
+                if batch_sample[2]:
+                    pts1 = np.float32([[width,0],[0,0],[width/4,height]])
+                    pts2 = np.float32([[width,0],[0,0],[width/4+shift,height]])
+                    M = cv2.getAffineTransform(pts1,pts2)
+                    img = cv2.warpAffine(img, M, (width,height),borderMode=cv2.BORDER_REPLICATE)
+                    # plt.imshow(img)
+                    # plt.show()
+                    # return
+
                 if np.random.random() < 0.5:
                     img = np.fliplr(img)
                     measurement = measurement*(-1.0)
@@ -79,6 +99,7 @@ def generator(samples, batch_size=8):
 
             X_train = np.array(images)
             y_train = np.array(measurements)
+#            return X_train, y_train
             yield sklearn.utils.shuffle(X_train, y_train)
 
 def model():
@@ -125,5 +146,6 @@ def model():
                 nb_val_samples=len(validation_samples), verbose=1, nb_epoch=5)
     model.save('./model.h5')
 
-#samples = load_data()
-model()
+samples = load_data()
+#generator(samples)
+#model()
