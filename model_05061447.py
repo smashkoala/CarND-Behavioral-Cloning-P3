@@ -6,54 +6,19 @@ from sklearn.cross_validation import train_test_split
 from sklearn.utils import shuffle
 import matplotlib.pyplot as plt
 
-DEBUG = False
-BRIDGE = True
-bridge_rate = 1.0
-
-CURVE = True
-curve_rate = 1.0
-
-def load_additional_data(share_rate, rate, data_name):
-    image_paths = []
-    measurements = []
-    share_flags = []
-    samples = []
-
-    csv_path = '../' + data_name + '/driving_log.csv'
-    with open(csv_path) as csvfile:
-      reader = csv.reader(csvfile)
-      for line in reader:
-        samples.append(line)
-    del(samples[0])
-
-    for sample in samples:
-        if np.random.random() < bridge_rate:
-            filename = sample[0].split('/')[-1]
-            current_path = '../' + data_name +'/IMG/'
-            current_path = current_path + filename
-            image_paths.append(current_path)
-            measurement = float(sample[3])
-            measurements.append(measurement)
-            share_flags.append(False)
-
-            if np.random.random() < share_rate:
-                image_paths.append(current_path)
-                measurements.append(measurement)
-                share_flags.append(True)
-
-    return image_paths, measurements, share_flags
-
 def load_data():
+    AWS = True
     del_rate = 0.85
     del_angle = 0.03
     share_rate = 0.0
-
     samples = []
     with open('../data/driving_log.csv') as csvfile:
       reader = csv.reader(csvfile)
       for line in reader:
         samples.append(line)
     del(samples[0])
+
+    #print(len(samples))
 
     image_paths = []
     measurements = []
@@ -70,10 +35,10 @@ def load_data():
             correction = 0.0
             i = 0
         elif camera_prob >= 0.4 and camera_prob < 0.70:
-            correction = 0.3
+            correction = 0.2
             i = 1
         else:
-            correction = -0.3
+            correction = -0.2
             i = 2
         filename = sample[i].split('/')[-1]
         current_path = '../data/IMG/' + filename
@@ -87,22 +52,10 @@ def load_data():
             measurements.append(measurement)
             share_flags.append(True)
 
-    if BRIDGE:
-        img_pth, mea, sha = load_additional_data(share_rate, bridge_rate, 'bridge_data')
-        image_paths += img_pth
-        measurements += mea
-        share_flags += sha
-
-    if CURVE:
-        img_pth, mea, sha = load_additional_data(share_rate, curve_rate, 'curve_data')
-        image_paths += img_pth
-        measurements += mea
-        share_flags += sha
-
     data = np.column_stack((image_paths, measurements, share_flags))
     data = shuffle(data)
 
-    if DEBUG:
+    if AWS is False:
         plot_data(measurements)
     return data
 
@@ -114,8 +67,7 @@ def plot_data(data):
 
 def generator(samples, batch_size=8):
     num_samples = len(samples)
-    shift = 10
-
+    shift = 40
     while True:
         shuffle(samples)
         for offset in range(0, num_samples, batch_size):
@@ -124,24 +76,22 @@ def generator(samples, batch_size=8):
             measurements = []
             for batch_sample in batch_samples:
                 img = cv2.imread(batch_sample[0])
-                img = img[70:-25, :, :]
                 img = cv2.cvtColor(img, cv2.COLOR_BGR2YUV)
-                img = cv2.GaussianBlur(img, (3,3), 0)
-                height = 64
-                width = 64
+                height = int(img.shape[0]/2)
+                width = int(img.shape[1]/2)
+                # height = 64
+                # width = 64
                 img = cv2.resize(img,(width, height))
                 measurement = float(batch_sample[1])
 
-                if DEBUG:
-                    plt.imshow(img)
-                    plt.show()
-                    return
-
                 if batch_sample[2]:
-                    pts1 = np.float32([[width,0],[0,0],[width/2,height]])
-                    pts2 = np.float32([[width,0],[0,0],[width/2+shift,height]])
+                    pts1 = np.float32([[width,0],[0,0],[width/4,height]])
+                    pts2 = np.float32([[width,0],[0,0],[width/4+shift,height]])
                     M = cv2.getAffineTransform(pts1,pts2)
                     img = cv2.warpAffine(img, M, (width,height),borderMode=cv2.BORDER_REPLICATE)
+                    # plt.imshow(img)
+                    # plt.show()
+                    # return
 
                 if np.random.random() < 0.5:
                     img = np.fliplr(img)
@@ -151,6 +101,7 @@ def generator(samples, batch_size=8):
 
             X_train = np.array(images)
             y_train = np.array(measurements)
+#            return X_train, y_train
             yield sklearn.utils.shuffle(X_train, y_train)
 
 def model():
@@ -165,7 +116,8 @@ def model():
 
     model = Sequential()
 
-    model.add(Lambda(lambda x: x / 255.0 - 0.5, input_shape=(64,64,3),output_shape=(64,64,3)))
+    model.add(Lambda(lambda x: x / 255.0 - 0.5, input_shape=(80,160,3),output_shape=(80,160,3)))
+    model.add(Cropping2D(cropping=((35, 10), (0, 0)), input_shape=(80,160,3)))
 
     model.add(Convolution2D(24, 5, 5))
     model.add(Activation('elu'))
@@ -191,11 +143,11 @@ def model():
     model.summary()
 
     model.compile(loss='mse', optimizer='adam')
+    #model.fit(X_train, y_train, validation_split=0.2, shuffle=True)
     model.fit_generator(train_generator, samples_per_epoch= len(train_samples), validation_data=validation_generator,
                 nb_val_samples=len(validation_samples), verbose=1, nb_epoch=4)
     model.save('./model.h5')
 
-# samples = load_data()
-# print(samples.shape)
-#generator(samples)
+#samples = load_data()
+# generator(samples)
 model()
