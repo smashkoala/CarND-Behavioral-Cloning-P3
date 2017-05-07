@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 
 DEBUG = False
 BRIDGE = True
+bridge_rate = 1.0
 
 def load_brige_data(share_rate):
     image_paths = []
@@ -22,19 +23,19 @@ def load_brige_data(share_rate):
     del(samples[0])
 
     for sample in samples:
-        filename = sample[0].split('/')[-1]
-        current_path = '../bridge_data/IMG/' + filename
-        image_paths.append(current_path)
-        measurement = float(sample[3])
-        measurements.append(measurement)
-        share_flags.append(False)
-
-        if np.random.random() < share_rate:
+        if np.random.random() < bridge_rate:
+            filename = sample[0].split('/')[-1]
+            current_path = '../bridge_data/IMG/' + filename
             image_paths.append(current_path)
+            measurement = float(sample[3])
             measurements.append(measurement)
-            share_flags.append(True)
+            share_flags.append(False)
 
-        return image_paths, measurements, share_flags
+            if np.random.random() < share_rate:
+                image_paths.append(current_path)
+                measurements.append(measurement)
+                share_flags.append(True)
+    return image_paths, measurements, share_flags
 
 def load_data():
     del_rate = 0.85
@@ -142,17 +143,13 @@ def generator(samples, batch_size=8):
 
             X_train = np.array(images)
             y_train = np.array(measurements)
-
-        if DEBUG:
-            return X_train, y_train
-        else:
             yield sklearn.utils.shuffle(X_train, y_train)
 
 def model():
     samples = load_data()
     train_samples, validation_samples = train_test_split(samples, test_size=0.2)
-    train_generator = generator(train_samples, batch_size=8)
-    validation_generator = generator(validation_samples, batch_size=8)
+    train_generator = generator(train_samples, batch_size=32)
+    validation_generator = generator(validation_samples, batch_size=32)
 
     from keras.models import Sequential
     from keras.layers import Flatten, Dense
@@ -162,7 +159,7 @@ def model():
 
     model.add(Lambda(lambda x: x / 255.0 - 0.5, input_shape=(64,64,3),output_shape=(64,64,3)))
     # model.add(Lambda(lambda x: x / 255.0 - 0.5, input_shape=(80,160,3),output_shape=(80,160,3)))
-#    model.add(Cropping2D(cropping=((35, 12), (0, 0)), input_shape=(80,160,3)))
+    # model.add(Cropping2D(cropping=((35, 10), (0, 0)), input_shape=(80,160,3)))
 
     model.add(Convolution2D(24, 5, 5))
     model.add(Activation('elu'))
@@ -188,13 +185,11 @@ def model():
     model.summary()
 
     model.compile(loss='mse', optimizer='adam')
-    #model.fit(X_train, y_train, validation_split=0.2, shuffle=True)
     model.fit_generator(train_generator, samples_per_epoch= len(train_samples), validation_data=validation_generator,
                 nb_val_samples=len(validation_samples), verbose=1, nb_epoch=4)
     model.save('./model.h5')
 
-if DEBUG:
-    samples = load_data()
-    generator(samples)
-else:
-    model()
+# samples = load_data()
+# print(samples.shape)
+#generator(samples)
+model()
