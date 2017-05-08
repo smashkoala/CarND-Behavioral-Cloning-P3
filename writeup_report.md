@@ -62,7 +62,7 @@ The data is normalized in the model using a Keras lambda layer (code line 180).
 
 Five fully connected layers are implemented before the final output. (code line 197-202)
 
-####2. Attempts to reduce overfitting in the model
+####2. Attempts to reduce overfitting in the model  
 No special mechanism is implemented in the model to reduce overfitting.
 
 The model was trained and validated on different data sets to ensure that the model was not overfitting such as using center, left and right camera images randomly. The images are randomly flipped too.
@@ -75,12 +75,12 @@ The model used an adam optimizer, so the learning rate was not tuned manually (m
 ####4. Appropriate training data
 
 For training, sample data from Udacity and some specially collected data from the simulation were used.
-The special data was collected mainly to overcome the situation where the car goes off the track on the bridge and two steep curves.
+The special data was collected mainly to overcome the situation where the vehicle goes off the track on the bridge and two steep curves.
 For details about how I created the training data, see the next section.
 
 ###Model Architecture and Training Strategy
 
-####1. Solution Design Approach
+####1. Solution Design Approach  
 The NVIDIA network was chosen as a proven model architecture.
 The model has not been changed so much until the end since I knew the the NVIDIA network was a proven architecture according to the course and the web page [here](https://devblogs.nvidia.com/parallelforall/deep-learning-self-driving-cars/).
 In stead of tuning the model, I spent a lot of time to fine tune the image pre-processing and to balance the distribution of samples in terms of steering angles.
@@ -113,7 +113,7 @@ To augment the data set, I randomly flipped images and angles since the track ha
 
 I also tried to augment the data set with shear mapping as in code line 90-93 and 151-155. However, since this did not bring improvement, I stopped using it.
 
-With the process above, the vehicle could somehow run the one full lap, although at three specific spots such as on the bridge, and two steep curves after the bridge the vehicle became off the track.
+With the process above, the vehicle could somehow run the one full lap, although at three specific spots such as on the bridge, and two steep curves after, the bridge the vehicle came close to ledges.
 
 In order to solve this, I collected samples on these spots on the simulator. I used only images of the center camera of these samples. In these samples, I recorded the vehicle going straight and recovering from left side and right sides of the road back to center.
 
@@ -130,4 +130,4 @@ After the collection process, I had 6082 number of data points. I then preproces
 
 I randomly shuffled the data set and put 20% of the data into a validation set.
 
-I used this training data for both training and validating the model. The validation set helped determine if the model was over or under fitting. The ideal number of epochs was 4 since the validation loss did not change so much after 4 epochs. I used an adam optimizer so that manually training the learning rate wasn't necessary.
+The validation set helped determine if the model was over or under fitting. The ideal number of epochs was 4 since the validation loss did not change so much after 4 epochs. I used an adam optimizer so that manually training the learning rate wasn't necessary.
