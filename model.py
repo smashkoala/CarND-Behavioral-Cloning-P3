@@ -13,6 +13,7 @@ bridge_rate = 1.0
 CURVE = True
 curve_rate = 1.0
 
+#Helper function to load additional data
 def load_additional_data(share_rate, rate, data_name):
     image_paths = []
     measurements = []
@@ -43,6 +44,7 @@ def load_additional_data(share_rate, rate, data_name):
 
     return image_paths, measurements, share_flags
 
+#Load Udacity sample data and additional data
 def load_data():
     del_rate = 0.85
     del_angle = 0.03
@@ -84,17 +86,20 @@ def load_data():
         measurements.append(measurement)
         share_flags.append(False)
 
+        #Data augumentation with share is NOT used in the end.
         if np.random.random() < share_rate:
             image_paths.append(current_path)
             measurements.append(measurement)
             share_flags.append(True)
 
+    #Load images and steering angle data on the bridge.
     if BRIDGE:
         img_pth, mea, sha = load_additional_data(share_rate, bridge_rate, 'bridge_data')
         image_paths += img_pth
         measurements += mea
         share_flags += sha
 
+    #Load images and steering angle data at two steep curves
     if CURVE:
         img_pth, mea, sha = load_additional_data(share_rate, curve_rate, 'curve_data')
         image_paths += img_pth
@@ -113,6 +118,7 @@ def load_data():
         plot_data(measurements)
     return data
 
+#Debug function to see the data historgram
 def plot_data(data):
     plt.hist(data, bins = 40, rwidth=0.8)
     fig = plt.gcf()
@@ -131,20 +137,14 @@ def generator(samples, batch_size=8):
             measurements = []
             for batch_sample in batch_samples:
                 img = cv2.imread(batch_sample[0])
+                #Crop to 70 x 320 and bottom 25 x 320 pixels
                 img = img[70:-25, :, :]
                 img = cv2.cvtColor(img, cv2.COLOR_BGR2YUV)
                 img = cv2.GaussianBlur(img, (3,3), 0)
-                # height = int(img.shape[0]/2)
-                # width = int(img.shape[1]/2)
                 height = 64
                 width = 64
                 img = cv2.resize(img,(width, height))
                 measurement = float(batch_sample[1])
-
-                if DEBUG:
-                    plt.imshow(img)
-                    plt.show()
-                    return
 
                 if batch_sample[2]:
                     pts1 = np.float32([[width,0],[0,0],[width/2,height]])
@@ -162,6 +162,7 @@ def generator(samples, batch_size=8):
             y_train = np.array(measurements)
             yield sklearn.utils.shuffle(X_train, y_train)
 
+#Model function
 def model():
     samples = load_data()
     train_samples, validation_samples = train_test_split(samples, test_size=0.2)
@@ -204,7 +205,7 @@ def model():
                 nb_val_samples=len(validation_samples), verbose=1, nb_epoch=4)
     model.save('./model.h5')
 
-samples = load_data()
-print(samples.shape)
-#generator(samples)
+#samples = load_data()
+#print(samples.shape)
+
 model()
