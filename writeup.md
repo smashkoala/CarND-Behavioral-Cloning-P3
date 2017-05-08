@@ -34,6 +34,7 @@ My project includes the following files:
 * drive.py for driving the car in autonomous mode
 * model.h5 containing a trained convolution neural network
 * writeup_report.md or writeup_report.pdf summarizing the results
+* video.mp4 to show how the vehicle drove in autonomous mode
 
 The files except model.h5 can be also found from the GitHub [repository](https://github.com/smashkoala/CarND-Behavioral-Cloning-P3) too.
 
@@ -55,11 +56,11 @@ I chose the NVIDIA network architecture introduced in the course.
 Information on the following page is used as reference.
 https://devblogs.nvidia.com/parallelforall/deep-learning-self-driving-cars/
 
-It consists of a convolution neural network with 5x5 and 3x3 filter sizes and depths between 24 and 64 (model.py lines 179-200)
+It consists of a convolution neural network with 5x5 and 3x3 filter sizes and depths between 24 and 64 (model.py lines 178-192)
+The model includes ELU layers to introduce nonlinearity.
+The data is normalized in the model using a Keras lambda layer (code line 180).
 
-The model includes ELU layers to introduce nonlinearity, and the data is normalized in the model using a Keras lambda layer (code line 177).
-
-Five fully connected layers are implemented before the final output. (code line 196-199)
+Five fully connected layers are implemented before the final output. (code line 197-202)
 
 ####2. Attempts to reduce overfitting in the model
 No special mechanism is implemented in the model to reduce overfitting.
@@ -92,9 +93,9 @@ At the end of the process, the vehicle was able to drive autonomously around the
 
 ####2. Final Model Architecture
 
-The final model architecture (model.py lines 175-200) consisted of a convolution neural network with the following layers and layer sizes.
+The final model architecture (model.py lines 178-208) consists of a convolution neural network with the following layers and layer sizes.
 
-Here is a visualization of the architecture (note: visualizing the architecture is optional according to the project rubric)
+Here is a visualization of the architecture.
 
 ![alt text][image1]
 
@@ -109,6 +110,8 @@ The ratio of center, left and right are 40%, 30% and 30%.
 To augment the data set, I randomly flipped images and angles since the track has more left turn curves than right turn curves.  
 ![alt text][image6]
 ![alt text][image7]
+
+I also tried to augment the data set with shear mapping as in code line 89-91 and 150-154. However, since this did not bring improvement, I stopped using it.
 
 With the process above, the vehicle could somehow run the one full lap, although at three specific spots such as on the bridge, and two steep curves after the bridge the vehicle became off the track.
 

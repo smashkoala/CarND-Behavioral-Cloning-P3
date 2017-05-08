@@ -14,10 +14,10 @@ CURVE = True
 curve_rate = 1.0
 
 #Helper function to load additional data
-def load_additional_data(share_rate, rate, data_name):
+def load_additional_data(shear_rate, rate, data_name):
     image_paths = []
     measurements = []
-    share_flags = []
+    shear_flags = []
     samples = []
 
     csv_path = '../' + data_name + '/driving_log.csv'
@@ -35,20 +35,20 @@ def load_additional_data(share_rate, rate, data_name):
             image_paths.append(current_path)
             measurement = float(sample[3])
             measurements.append(measurement)
-            share_flags.append(False)
+            shear_flags.append(False)
 
-            if np.random.random() < share_rate:
+            if np.random.random() < shear_rate:
                 image_paths.append(current_path)
                 measurements.append(measurement)
-                share_flags.append(True)
+                shear_flags.append(True)
 
-    return image_paths, measurements, share_flags
+    return image_paths, measurements, shear_flags
 
 #Load Udacity sample data and additional data
 def load_data():
     del_rate = 0.85
     del_angle = 0.03
-    share_rate = 0.0
+    shear_rate = 0
 
     samples = []
     with open('../data/driving_log.csv') as csvfile:
@@ -57,11 +57,9 @@ def load_data():
         samples.append(line)
     del(samples[0])
 
-    #print(len(samples))
-
     image_paths = []
     measurements = []
-    share_flags = []
+    shear_flags = []
 
     for sample in samples:
         angle = abs(float(sample[3]))
@@ -70,6 +68,7 @@ def load_data():
                 continue
         camera_prob = np.random.random()
         i = 0
+        #Randomly choose which camera data to use
         if camera_prob < 0.4:
             correction = 0.0
             i = 0
@@ -84,34 +83,35 @@ def load_data():
         image_paths.append(current_path)
         measurement = float(sample[3]) + correction
         measurements.append(measurement)
-        share_flags.append(False)
+        shear_flags.append(False)
 
-        #Data augumentation with share is NOT used in the end.
-        if np.random.random() < share_rate:
+        #Data augumentation with shear is NOT used in the end.
+        # shear_rate is set 0 since it is not used.
+        if np.random.random() < shear_rate:
             image_paths.append(current_path)
             measurements.append(measurement)
-            share_flags.append(True)
+            shear_flags.append(True)
 
     #Load images and steering angle data on the bridge.
     if BRIDGE:
-        img_pth, mea, sha = load_additional_data(share_rate, bridge_rate, 'bridge_data')
+        img_pth, mea, sha = load_additional_data(shear_rate, bridge_rate, 'bridge_data')
         image_paths += img_pth
         measurements += mea
-        share_flags += sha
+        shear_flags += sha
 
     #Load images and steering angle data at two steep curves
     if CURVE:
-        img_pth, mea, sha = load_additional_data(share_rate, curve_rate, 'curve_data')
+        img_pth, mea, sha = load_additional_data(shear_rate, curve_rate, 'curve_data')
         image_paths += img_pth
         measurements += mea
-        share_flags += sha
+        shear_flags += sha
 
-        img_pth, mea, sha = load_additional_data(share_rate, curve_rate, 'curve_data2')
+        img_pth, mea, sha = load_additional_data(shear_rate, curve_rate, 'curve_data2')
         image_paths += img_pth
         measurements += mea
-        share_flags += sha
+        shear_flags += sha
 
-    data = np.column_stack((image_paths, measurements, share_flags))
+    data = np.column_stack((image_paths, measurements, shear_flags))
     data = shuffle(data)
 
     if DEBUG:
@@ -146,6 +146,8 @@ def generator(samples, batch_size=8):
                 img = cv2.resize(img,(width, height))
                 measurement = float(batch_sample[1])
 
+                #Affine transform is not used in the end.
+                #Batch_sample[2] is always False
                 if batch_sample[2]:
                     pts1 = np.float32([[width,0],[0,0],[width/2,height]])
                     pts2 = np.float32([[width,0],[0,0],[width/2+shift,height]])
