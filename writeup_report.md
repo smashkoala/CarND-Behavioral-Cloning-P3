@@ -56,7 +56,7 @@ I chose the NVIDIA network architecture introduced in the course.
 Information on the following page is used as reference.
 https://devblogs.nvidia.com/parallelforall/deep-learning-self-driving-cars/
 
-It consists of a convolution neural network with 5x5 and 3x3 filter sizes and depths between 24 and 64 (model.py lines 178-192)
+It consists of a convolution neural network with 5x5 and 3x3 filter sizes and depths between 24 and 64 (model.py lines 178-195).
 The model includes ELU layers to introduce nonlinearity.
 The data is normalized in the model using a Keras lambda layer (code line 180).
 
@@ -70,12 +70,12 @@ The model was tested by running it through the simulator and ensured that the ve
 
 ####3. Model parameter tuning
 
-The model used an adam optimizer, so the learning rate was not tuned manually (model.py line 202).
+The model used an adam optimizer, so the learning rate was not tuned manually (model.py line 205).
 
 ####4. Appropriate training data
 
-For training, sample data from Udacity and some specially collected data from the simulation are used.
-The special data is collected mainly to overcome the situation where the car goes off the track on the bridge and two steep curves.
+For training, sample data from Udacity and some specially collected data from the simulation were used.
+The special data was collected mainly to overcome the situation where the car goes off the track on the bridge and two steep curves.
 For details about how I created the training data, see the next section.
 
 ###Model Architecture and Training Strategy
@@ -87,7 +87,7 @@ In stead of tuning the model, I spent a lot of time to fine tune the image pre-p
 
 In order to gauge how well the model was working, I split my image and steering angle data into a training and validation set. I found that my model had a low mean squared error on both the training set and on the validation set. Since I chose the proven architecture, it seems that I did not have to spend so much time to overcome overfitting.
 
-The final step was to run the simulator to see how well the car was driving around track one. There were a few spots where the vehicle fell off the track. To improve the driving behavior in these cases, I collected sample data on these spots where the vehicle fell of the track, and used the samples for training and validation.
+The final step was to run the simulator to see how well the car was driving around track one. There were a few spots where the vehicle fell off the track. To improve the driving behavior in these cases, I collected sample data on these spots where the vehicle fell off the track, and used the samples for training and validation.
 
 At the end of the process, the vehicle was able to drive autonomously around the track without leaving the road.
 
@@ -111,7 +111,7 @@ To augment the data set, I randomly flipped images and angles since the track ha
 ![alt text][image6]
 ![alt text][image7]
 
-I also tried to augment the data set with shear mapping as in code line 89-91 and 150-154. However, since this did not bring improvement, I stopped using it.
+I also tried to augment the data set with shear mapping as in code line 90-93 and 151-155. However, since this did not bring improvement, I stopped using it.
 
 With the process above, the vehicle could somehow run the one full lap, although at three specific spots such as on the bridge, and two steep curves after the bridge the vehicle became off the track.
 
@@ -130,4 +130,4 @@ After the collection process, I had 6082 number of data points. I then preproces
 
 I randomly shuffled the data set and put 20% of the data into a validation set.
 
-I used this training data for training the model. The validation set helped determine if the model was over or under fitting. The ideal number of epochs was 4 since the validation loss did not change so much after 4 epochs. I used an adam optimizer so that manually training the learning rate wasn't necessary.
+I used this training data for both training and validating the model. The validation set helped determine if the model was over or under fitting. The ideal number of epochs was 4 since the validation loss did not change so much after 4 epochs. I used an adam optimizer so that manually training the learning rate wasn't necessary.
