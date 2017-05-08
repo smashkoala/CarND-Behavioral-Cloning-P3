@@ -55,6 +55,8 @@ def load_data():
         samples.append(line)
     del(samples[0])
 
+    #print(len(samples))
+
     image_paths = []
     measurements = []
     share_flags = []
@@ -99,6 +101,11 @@ def load_data():
         measurements += mea
         share_flags += sha
 
+        img_pth, mea, sha = load_additional_data(share_rate, curve_rate, 'curve_data2')
+        image_paths += img_pth
+        measurements += mea
+        share_flags += sha
+
     data = np.column_stack((image_paths, measurements, share_flags))
     data = shuffle(data)
 
@@ -127,6 +134,8 @@ def generator(samples, batch_size=8):
                 img = img[70:-25, :, :]
                 img = cv2.cvtColor(img, cv2.COLOR_BGR2YUV)
                 img = cv2.GaussianBlur(img, (3,3), 0)
+                # height = int(img.shape[0]/2)
+                # width = int(img.shape[1]/2)
                 height = 64
                 width = 64
                 img = cv2.resize(img,(width, height))
@@ -195,7 +204,7 @@ def model():
                 nb_val_samples=len(validation_samples), verbose=1, nb_epoch=4)
     model.save('./model.h5')
 
-# samples = load_data()
-# print(samples.shape)
+samples = load_data()
+print(samples.shape)
 #generator(samples)
 model()
