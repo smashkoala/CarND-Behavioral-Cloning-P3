@@ -119,11 +119,11 @@ In order to solve this, I collected samples on these spots on the simulator. I u
 ![alt text][image5]
 
 
-After the collection process, I had 6082 number of data points. I then preprocessed this data by
-1) Cropped top 70 x 320 and bottom 25 x 320
-2) Converted the BGR format to YUB
-3) Applied gaussian blur
-4) Resized the image to 64 x 64
+After the collection process, I had 6082 number of data points. I then preprocessed this data as follows:  
+1) Cropped top 70 x 320 and bottom 25 x 320  
+2) Converted the BGR format to YUB  
+3) Applied gaussian blur  
+4) Resized the image to 64 x 64  
 
 I randomly shuffled the data set and put 20% of the data into a validation set.
 
