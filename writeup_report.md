@@ -63,7 +63,7 @@ The data is normalized in the model using a Keras lambda layer (code line 180).
 Five fully connected layers are implemented before the final output. (code line 197-202)
 
 ####2. Attempts to reduce overfitting in the model  
-No special mechanism is implemented in the model to reduce overfitting.
+No special mechanism was implemented in the model to reduce overfitting.
 
 The model was trained and validated on different data sets to ensure that the model was not overfitting such as using center, left and right camera images randomly. The images are randomly flipped too.
 The model was tested by running it through the simulator and ensured that the vehicle could stay on the track.
