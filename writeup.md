@@ -106,7 +106,7 @@ Since the Udacity samples contain a lot of data whose steering angles are near 0
 In addition, I used images on the left and right cameras by randomly selecting them.
 The ratio of center, left and right are 40%, 30% and 30%.
 
-To augment the data set, I randomly flipped images and angles since the track has more left turn curves than right turn curves.
+To augment the data set, I randomly flipped images and angles since the track has more left turn curves than right turn curves.  
 ![alt text][image6]
 ![alt text][image7]
 
